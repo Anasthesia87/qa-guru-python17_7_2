@@ -48,6 +48,12 @@ class Cart:
         # По-умолчанию корзина пустая
         self.products = {}
 
+    def get_products_count(self):
+        return len(self.products)
+
+    def get_product_quantity(self, product):
+        return self.products.get(product, 0)
+
     def add_product(self, product: Product, buy_count=1):
         """
         Метод добавления продукта в корзину.
@@ -74,10 +80,7 @@ class Cart:
         self.products.clear()
 
     def get_total_price(self) -> float:
-        total_price = 0
-        for items in self.products:
-            total_price += self.products[items] * items.price
-        return total_price
+        return sum(product.price * quantity for product, quantity in self.products.items())
 
     def buy(self):
         """
@@ -85,10 +88,10 @@ class Cart:
         Учтите, что товаров может не хватать на складе.
         В этом случае нужно выбросить исключение ValueError
         """
-        for product, thing in self.products.items():
-            if product.quantity < thing:
-                raise ValueError("Недостаточное количество продуктов на складе")
-            else:
-                product.buy(thing)
-        self.clear()
+        for product, required_quantity in self.products.items():
+            if product.quantity < required_quantity:
+                raise ValueError(f"Недостаточное количество товара {product.name} на складе")
+        for product, required_quantity in self.products.items():
+            product.quantity -= required_quantity
 
+        self.clear()
