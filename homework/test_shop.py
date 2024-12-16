@@ -10,18 +10,13 @@ from homework.models import Product, Cart
 def product():
     return Product("book", 100, "This is a book", 1000)
 
+@pytest.fixture
+def cart(product):
+    return Cart()
 
 @pytest.fixture
 def product_journal():
     return Product("journal", 50, "This is a journal", 2000)
-
-
-@pytest.fixture
-def cart():
-    cart = Cart()
-    cart.products = {}
-    return cart
-
 
 @pytest.fixture
 def cart_with_products(product, product_journal):
@@ -77,57 +72,45 @@ class TestCart:
         assert cart.get_products_count() == 1
 
     def test_add_product_not_empty_cart(self, cart, product):
-        cart.products = {
-            product: 1
-        }
+        cart.add_product(product, 1)
         assert cart.products[product] == 1
         cart.add_product(product, 2)
         assert cart.get_product_quantity(product) == 3
         assert cart.get_products_count() == 1
 
     def test_remove_product_without_remove_count(self, cart, product):
-        cart.products = {
-            product: 1
-        }
+        cart.add_product(product, 1)
         assert cart.get_product_quantity(product) == 1
         cart.remove_product(product)
         assert cart.get_products_count() == 0
 
     def test_remove_product_more_then_remove_count(self, cart, product):
-        cart.products = {
-            product: 2
-        }
+        cart.add_product(product, 2)
         assert cart.get_product_quantity(product) == 2
         cart.remove_product(product, 3)
         assert cart.get_products_count() == 0
 
     def test_remove_product_less_then_remove_count(self, cart, product):
-        cart.products = {
-            product: 8
-        }
+        cart.add_product(product, 8)
         assert cart.get_product_quantity(product) == 8
         cart.remove_product(product, 4)
         assert cart.get_product_quantity(product) == 4
 
     def test_remove_product_equal_remove_count(self, cart, product):
-        cart.products = {
-            product: 35
-        }
+        cart.add_product(product, 35)
         assert cart.get_product_quantity(product) == 35
         cart.remove_product(product, 35)
         assert cart.get_products_count() == 0
 
     def test_clear_cart(self, cart, product):
-        cart.products = {
-            product: 35
-        }
+        cart.add_product(product, 35)
         assert cart.products[product] == 35
         cart.clear()
         assert cart.get_products_count() == 0
 
     def test_get_total_price_cart(self, cart, cart_with_products):
         assert cart.get_total_price() == 0.0
-        assert cart_with_products.get_total_price() == 70000
+        assert cart_with_products.get_total_price() == 70000.0
 
     def test_buy_product(self, cart, product):
         cart.add_product(product, 50)
@@ -139,3 +122,12 @@ class TestCart:
         cart.add_product(product, 1500)
         with pytest.raises(ValueError):
             assert cart.buy()
+
+    def test_buy_multiple_products_insufficient_one(self, cart, product, product_journal):
+        cart.add_product(product, 2000)
+        cart.add_product(product_journal, 500)
+        with pytest.raises(ValueError) as exception_info:
+           cart.buy()
+        assert str(exception_info.value) == (
+            f"Недостаточное количество товара {product.name} на складе"
+        )

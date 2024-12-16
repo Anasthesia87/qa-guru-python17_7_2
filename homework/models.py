@@ -92,6 +92,6 @@ class Cart:
             if product.quantity < required_quantity:
                 raise ValueError(f"Недостаточное количество товара {product.name} на складе")
         for product, required_quantity in self.products.items():
-            product.quantity -= required_quantity
+            product.buy(required_quantity)
 
         self.clear()
