@@ -10,13 +10,16 @@ from homework.models import Product, Cart
 def product():
     return Product("book", 100, "This is a book", 1000)
 
+
 @pytest.fixture
 def cart(product):
     return Cart()
 
+
 @pytest.fixture
 def product_journal():
     return Product("journal", 50, "This is a journal", 2000)
+
 
 @pytest.fixture
 def cart_with_products(product, product_journal):
@@ -127,7 +130,7 @@ class TestCart:
         cart.add_product(product, 2000)
         cart.add_product(product_journal, 500)
         with pytest.raises(ValueError) as exception_info:
-           cart.buy()
+            cart.buy()
         assert str(exception_info.value) == (
             f"Недостаточное количество товара {product.name} на складе"
         )
